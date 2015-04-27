@@ -82,7 +82,7 @@ func (l *Conn) Add(addRequest *AddRequest) error {
 		ber.PrintPacket(packet)
 	}
 
-	if packet.Children[1].Tag == ApplicationModifyResponse {
+	if packet.Children[1].Tag == ApplicationAddResponse {
 		resultCode, resultDescription := getLDAPResultCode(packet)
 		if resultCode != 0 {
 			return NewError(resultCode, errors.New(resultDescription))
