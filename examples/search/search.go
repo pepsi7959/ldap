@@ -8,17 +8,17 @@ import (
 	"fmt"
 	"log"
 
-	"gopkg.in/ldap.v1"
+	"github.com/go-ldap/ldap"
 )
 
 var (
 	ldapServer string   = "localhost"
 	ldapPort   uint16   = 389
-	baseDN     string   = "dc=*,dc=*"
-	filter     string   = "&(objectClass=*)"
-	Attributes []string = []string{"dn", "cn"}
-	user       string   = "*"
-	passwd     string   = "*"
+	baseDN     string   = "cn=raft"
+	filter     string   = "(objectClass=*)"
+	Attributes []string = []string{"*"}
+	user       string   = "cn=raft"
+	passwd     string   = "secret"
 )
 
 func main() {
