@@ -54,9 +54,9 @@ func (l *Conn) Delete(deleteRequest *DeleteRequest) error {
 	}
 
 	if packet.Children[1].Tag == ApplicationDelResponse {
-		resultCode, resultDescription := getLDAPResultCode(packet)
+		resultCode, resultDescription, verbose := getLDAPResultCode(packet)
 		if resultCode != 0 {
-			return NewError(resultCode, errors.New(resultDescription))
+			return NewError(resultCode, errors.New(resultDescription), verbose)
 		}
 	} else {
 		log.Printf("Unexpected Response: %d", packet.Children[1].Tag)

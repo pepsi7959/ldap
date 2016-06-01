@@ -333,7 +333,7 @@ func addDefaultLDAPResponseDescriptions(packet *ber.Packet) {
 func DebugBinaryFile(fileName string) error {
 	file, err := ioutil.ReadFile(fileName)
 	if err != nil {
-		return NewError(ErrorDebugging, err)
+		return NewError(ErrorDebugging, err, "")
 	}
 	ber.PrintBytes(os.Stdout, file, "")
 	packet := ber.DecodePacket(file)
@@ -346,6 +346,7 @@ func DebugBinaryFile(fileName string) error {
 type Error struct {
 	Err        error
 	ResultCode uint8
+	Verbose    string
 }
 
 func (e *Error) Error() string {
@@ -353,19 +354,22 @@ func (e *Error) Error() string {
 	return fmt.Sprintf("%q: %s", LDAPResultCodeMap[e.ResultCode], e.Err.Error())
 }
 
-func NewError(resultCode uint8, err error) error {
+func NewError(resultCode uint8, err error, verbose ...string) error {
+	if len(verbose) >= 0 {
+		return &Error{ResultCode: resultCode, Err: err, Verbose: verbose[0]}
+	}
 	return &Error{ResultCode: resultCode, Err: err}
 }
 
-func getLDAPResultCode(packet *ber.Packet) (code uint8, description string) {
+func getLDAPResultCode(packet *ber.Packet) (code uint8, description string, verbose string) {
 	if len(packet.Children) >= 2 {
 		response := packet.Children[1]
 		if response.ClassType == ber.ClassApplication && response.TagType == ber.TypeConstructed && len(response.Children) >= 3 {
-			return uint8(response.Children[0].Value.(int64)), response.Children[2].Value.(string)
+			return uint8(response.Children[0].Value.(int64)), response.Children[2].Value.(string), response.Children[1].Value.(string)
 		}
 	}
 
-	return ErrorNetwork, "Invalid packet format"
+	return ErrorNetwork, "Invalid packet format", ""
 }
 
 var hex = "0123456789abcdef"
