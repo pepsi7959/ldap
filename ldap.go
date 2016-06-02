@@ -355,7 +355,7 @@ func (e *Error) Error() string {
 }
 
 func NewError(resultCode uint8, err error, verbose ...string) error {
-	if len(verbose) >= 0 {
+	if len(verbose) > 0 {
 		return &Error{ResultCode: resultCode, Err: err, Verbose: verbose[0]}
 	}
 	return &Error{ResultCode: resultCode, Err: err}
