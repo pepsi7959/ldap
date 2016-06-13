@@ -82,9 +82,9 @@ func (l *Conn) SimpleBind(simpleBindRequest *SimpleBindRequest) (*SimpleBindResu
 		}
 	}
 
-	resultCode, resultDescription, verbose := getLDAPResultCode(packet)
+	resultCode, resultDescription, matchedDn := getLDAPResultCode(packet)
 	if resultCode != 0 {
-		return result, NewError(resultCode, errors.New(resultDescription), verbose)
+		return result, NewError(resultCode, errors.New(resultDescription), matchedDn)
 	}
 
 	return result, nil
@@ -126,9 +126,9 @@ func (l *Conn) Bind(username, password string) error {
 		ber.PrintPacket(packet)
 	}
 
-	resultCode, resultDescription, verbose := getLDAPResultCode(packet)
+	resultCode, resultDescription, matchedDn := getLDAPResultCode(packet)
 	if resultCode != 0 {
-		return NewError(resultCode, errors.New(resultDescription), verbose)
+		return NewError(resultCode, errors.New(resultDescription), matchedDn)
 	}
 
 	return nil

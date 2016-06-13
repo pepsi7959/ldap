@@ -350,9 +350,9 @@ func (l *Conn) Search(searchRequest *SearchRequest) (*SearchResult, error) {
 			}
 			result.Entries = append(result.Entries, entry)
 		case 5:
-			resultCode, resultDescription, verbose := getLDAPResultCode(packet)
+			resultCode, resultDescription, matchedDn := getLDAPResultCode(packet)
 			if resultCode != 0 {
-				return result, NewError(resultCode, errors.New(resultDescription), verbose)
+				return result, NewError(resultCode, errors.New(resultDescription), matchedDn)
 			}
 			if len(packet.Children) == 3 {
 				for _, child := range packet.Children[2].Children {

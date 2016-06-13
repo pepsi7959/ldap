@@ -11,6 +11,7 @@ import (
 	"log"
 	"net"
 	"sync"
+	"time"
 
 	"gopkg.in/asn1-ber.v1"
 )
@@ -57,6 +58,18 @@ type Conn struct {
 // and then returns a new Conn for the connection.
 func Dial(network, addr string) (*Conn, error) {
 	c, err := net.Dial(network, addr)
+	if err != nil {
+		return nil, NewError(ErrorNetwork, err)
+	}
+	conn := NewConn(c)
+	conn.start()
+	return conn, nil
+}
+
+// DialTimeout connects to the given address  with timeout on the given network using net.DialTimeout
+// and then returns a new Conn for the connection.
+func DialTimeout(network, addr string, timeout time.Duration) (*Conn, error) {
+	c, err := net.DialTimeout(network, addr, timeout)
 	if err != nil {
 		return nil, NewError(ErrorNetwork, err)
 	}

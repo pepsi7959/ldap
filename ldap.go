@@ -346,7 +346,7 @@ func DebugBinaryFile(fileName string) error {
 type Error struct {
 	Err        error
 	ResultCode uint8
-	Verbose    string
+	MatchedDn  string
 }
 
 func (e *Error) Error() string {
@@ -354,14 +354,14 @@ func (e *Error) Error() string {
 	return fmt.Sprintf("%q: %s", LDAPResultCodeMap[e.ResultCode], e.Err.Error())
 }
 
-func NewError(resultCode uint8, err error, verbose ...string) error {
-	if len(verbose) > 0 {
-		return &Error{ResultCode: resultCode, Err: err, Verbose: verbose[0]}
+func NewError(resultCode uint8, err error, matchedDn ...string) error {
+	if len(matchedDn) > 0 {
+		return &Error{ResultCode: resultCode, Err: err, MatchedDn: matchedDn[0]}
 	}
 	return &Error{ResultCode: resultCode, Err: err}
 }
 
-func getLDAPResultCode(packet *ber.Packet) (code uint8, description string, verbose string) {
+func getLDAPResultCode(packet *ber.Packet) (code uint8, description string, matchedDn string) {
 	if len(packet.Children) >= 2 {
 		response := packet.Children[1]
 		if response.ClassType == ber.ClassApplication && response.TagType == ber.TypeConstructed && len(response.Children) >= 3 {
