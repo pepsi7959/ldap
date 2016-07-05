@@ -351,14 +351,24 @@ func (l *Conn) Search(searchRequest *SearchRequest) (*SearchResult, error) {
 			result.Entries = append(result.Entries, entry)
 		case 5:
 			resultCode, resultDescription, matchedDn := getLDAPResultCode(packet)
-			if resultCode != 0 {
+			switch resultCode {
+			case 0: // normal case; skip
+			case 10: // referral; skip
+			default:
 				return result, NewError(resultCode, errors.New(resultDescription), matchedDn)
 			}
+
 			if len(packet.Children) == 3 {
 				for _, child := range packet.Children[2].Children {
 					result.Controls = append(result.Controls, DecodeControl(child))
 				}
 			}
+			if len(packet.Children[1].Children) == 4 { // referal
+				for _, child := range packet.Children[1].Children[3].Children {
+					result.Referrals = append(result.Referrals, child.Value.(string))
+				}
+			}
+
 			foundSearchResultDone = true
 		case 19:
 			result.Referrals = append(result.Referrals, packet.Children[1].Children[0].Value.(string))
