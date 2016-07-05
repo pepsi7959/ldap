@@ -350,13 +350,6 @@ func (l *Conn) Search(searchRequest *SearchRequest) (*SearchResult, error) {
 			}
 			result.Entries = append(result.Entries, entry)
 		case 5:
-			resultCode, resultDescription, matchedDn := getLDAPResultCode(packet)
-			switch resultCode {
-			case 0: // normal case; skip
-			case 10: // referral; skip
-			default:
-				return result, NewError(resultCode, errors.New(resultDescription), matchedDn)
-			}
 
 			if len(packet.Children) == 3 {
 				for _, child := range packet.Children[2].Children {
@@ -367,6 +360,10 @@ func (l *Conn) Search(searchRequest *SearchRequest) (*SearchResult, error) {
 				for _, child := range packet.Children[1].Children[3].Children {
 					result.Referrals = append(result.Referrals, child.Value.(string))
 				}
+			}
+			resultCode, resultDescription, matchedDn := getLDAPResultCode(packet)
+			if resultCode != 0 {
+				return result, NewError(resultCode, errors.New(resultDescription), matchedDn)
 			}
 
 			foundSearchResultDone = true
