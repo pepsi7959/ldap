@@ -63,6 +63,7 @@ type ModifyRequest struct {
 	addAttributes     []PartialAttribute
 	deleteAttributes  []PartialAttribute
 	replaceAttributes []PartialAttribute
+	controls          []Control
 }
 
 func (m *ModifyRequest) Add(attrType string, attrVals []string) {
@@ -100,22 +101,29 @@ func (m ModifyRequest) encode() *ber.Packet {
 		changes.AppendChild(change)
 	}
 	request.AppendChild(changes)
+
 	return request
 }
 
 func NewModifyRequest(
 	dn string,
+	controls []Control,
 ) *ModifyRequest {
 	return &ModifyRequest{
-		dn: dn,
+		dn:       dn,
+		controls: controls,
 	}
 }
 
-func (l *Conn) Modify(modifyRequest *ModifyRequest) error {
+func (l *Conn) Modify(r *ModifyRequest) error {
 	messageID := l.nextMessageID()
 	packet := ber.Encode(ber.ClassUniversal, ber.TypeConstructed, ber.TagSequence, nil, "LDAP Request")
 	packet.AppendChild(ber.NewInteger(ber.ClassUniversal, ber.TypePrimitive, ber.TagInteger, messageID, "MessageID"))
-	packet.AppendChild(modifyRequest.encode())
+	packet.AppendChild(r.encode())
+	// encode search controls
+	if len(r.controls) > 0 {
+		packet.AppendChild(encodeControls(r.controls))
+	}
 
 	l.Debug.PrintPacket(packet)
 

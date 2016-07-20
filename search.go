@@ -288,19 +288,19 @@ func (l *Conn) SearchWithPaging(searchRequest *SearchRequest, pagingSize uint32)
 	return searchResult, nil
 }
 
-func (l *Conn) Search(searchRequest *SearchRequest) (*SearchResult, error) {
+func (l *Conn) Search(r *SearchRequest) (*SearchResult, error) {
 	messageID := l.nextMessageID()
 	packet := ber.Encode(ber.ClassUniversal, ber.TypeConstructed, ber.TagSequence, nil, "LDAP Request")
 	packet.AppendChild(ber.NewInteger(ber.ClassUniversal, ber.TypePrimitive, ber.TagInteger, messageID, "MessageID"))
 	// encode search request
-	encodedSearchRequest, err := searchRequest.encode()
+	encodedSearchRequest, err := r.encode()
 	if err != nil {
 		return nil, err
 	}
 	packet.AppendChild(encodedSearchRequest)
 	// encode search controls
-	if searchRequest.Controls != nil {
-		packet.AppendChild(encodeControls(searchRequest.Controls))
+	if r.Controls != nil {
+		packet.AppendChild(encodeControls(r.Controls))
 	}
 
 	l.Debug.PrintPacket(packet)

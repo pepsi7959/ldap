@@ -26,6 +26,7 @@ func (p *Attribute) encode() *ber.Packet {
 type AddRequest struct {
 	dn            string
 	addAttributes []Attribute
+	controls      []Control
 }
 
 func (r *AddRequest) Add(attrType string, attrVals []string) {
@@ -40,14 +41,20 @@ func (r AddRequest) encode() *ber.Packet {
 		adds.AppendChild(attribute.encode())
 	}
 	request.AppendChild(adds)
+	// encode controls
+	if len(r.controls) > 0 {
+		request.AppendChild(encodeControls(r.controls))
+	}
 	return request
 }
 
 func NewAddRequest(
 	dn string,
+	controls []Control,
 ) *AddRequest {
 	return &AddRequest{
-		dn: dn,
+		dn:       dn,
+		controls: controls,
 	}
 }
 

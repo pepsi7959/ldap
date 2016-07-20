@@ -35,7 +35,8 @@ type ModifyDNRequest struct {
 	dn           string
 	newrdn       string
 	deleteoldrdn bool
-	// newSuperior  string
+	newSuperior  string
+	controls     []Control
 }
 
 func (m ModifyDNRequest) encode() *ber.Packet {
@@ -43,7 +44,10 @@ func (m ModifyDNRequest) encode() *ber.Packet {
 	request.AppendChild(ber.NewString(ber.ClassUniversal, ber.TypePrimitive, ber.TagOctetString, m.dn, "DN"))
 	request.AppendChild(ber.NewString(ber.ClassUniversal, ber.TypePrimitive, ber.TagOctetString, m.newrdn, "NewRDN"))
 	request.AppendChild(ber.NewBoolean(ber.ClassUniversal, ber.TypePrimitive, ber.TagBoolean, m.deleteoldrdn, "DeleteOldRDN"))
-	// request.AppendChild(ber.NewString(ber.ClassUniversal, ber.TypePrimitive, ber.TagOctetString, m.newSuperior, "NewSuperior"))
+	if m.newSuperior != "" {
+		request.AppendChild(ber.NewString(ber.ClassUniversal, ber.TypePrimitive, ber.TagOctetString, m.newSuperior, "NewSuperior"))
+	}
+
 	return request
 }
 
@@ -51,21 +55,27 @@ func NewModifyDNRequest(
 	dn string,
 	newrdn string,
 	deleteoldrdn bool,
-	// newSuperior string,
+	newSuperior string,
+	controls []Control,
 ) *ModifyDNRequest {
 	return &ModifyDNRequest{
 		dn:           dn,
 		newrdn:       newrdn,
 		deleteoldrdn: deleteoldrdn,
-		// newSuperior:  newSuperior,
+		newSuperior:  newSuperior,
+		controls:     controls,
 	}
 }
 
-func (l *Conn) ModifyDn(ModifyDNRequest *ModifyDNRequest) error {
+func (l *Conn) ModifyDn(r *ModifyDNRequest) error {
 	messageID := l.nextMessageID()
 	packet := ber.Encode(ber.ClassUniversal, ber.TypeConstructed, ber.TagSequence, nil, "LDAP Request")
 	packet.AppendChild(ber.NewInteger(ber.ClassUniversal, ber.TypePrimitive, ber.TagInteger, messageID, "MessageID"))
-	packet.AppendChild(ModifyDNRequest.encode())
+	packet.AppendChild(r.encode())
+	// encode search controls
+	if len(r.controls) > 0 {
+		packet.AppendChild(encodeControls(r.controls))
+	}
 
 	l.Debug.PrintPacket(packet)
 
