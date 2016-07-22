@@ -102,7 +102,7 @@ func (l *Conn) ModifyDn(r *ModifyDNRequest) error {
 		ber.PrintPacket(packet)
 	}
 
-	if packet.Children[1].Tag == ApplicationModifyResponse {
+	if packet.Children[1].Tag == ApplicationModifyDNResponse {
 		resultCode, resultDescription, matchedDn := getLDAPResultCode(packet)
 		if resultCode != 0 {
 			return NewError(resultCode, errors.New(resultDescription), matchedDn)
